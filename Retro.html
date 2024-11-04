@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Clock</title> <!-- Updated title -->
+
+    <!-- Google Fonts link for "Press Start 2P" to simulate a pixelated look -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #000000;
+            color: #ffffff;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition */
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .time-container, .date-container, .battery-container {
+            background-color: transparent;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+        }
+
+        .time-container {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 4em; /* Larger font size for time */
+            letter-spacing: 0.1em;
+        }
+
+        .date-container {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1.5em; /* Smaller font size for date */
+            letter-spacing: 0.1em;
+        }
+
+        .battery-container {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 1em; /* Even smaller font size for battery */
+            letter-spacing: 0.1em;
+            cursor: pointer; /* Change cursor to pointer for battery click */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Time Display -->
+        <div class="time-container" id="clock"></div>
+
+        <!-- Date Display -->
+        <div class="date-container" id="date"></div>
+
+        <!-- Battery Status Display -->
+        <div class="battery-container" id="battery-status" onclick="toggleBackground()"></div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            // Remove AM/PM format
+            hours = hours % 12 || 12; // Convert to 12-hour format and handle midnight (0 => 12)
+
+            const timeString = `${String(hours).padStart(2, '0')}:${minutes}:${seconds}`;
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+            const dateString = now.toLocaleDateString(undefined, options);
+            document.getElementById('date').textContent = dateString;
+        }
+
+        function updateBatteryStatus() {
+            if ('getBattery' in navigator) {
+                navigator.getBattery().then(battery => {
+                    const level = Math.round(battery.level * 100);
+                    const charging = battery.charging ? "⚡" : "";
+                    document.getElementById('battery-status').textContent = `${level}%${charging}`;
+                });
+            } else {
+                document.getElementById('battery-status').textContent = "Battery status not supported";
+            }
+        }
+
+        // Toggle background and text color
+        function toggleBackground() {
+            const body = document.body;
+            const isDark = body.style.backgroundColor === "black" || body.style.backgroundColor === "";
+            body.style.backgroundColor = isDark ? "white" : "black";
+            body.style.color = isDark ? "black" : "white";
+        }
+
+        // Update the time, date, and battery status periodically
+        setInterval(updateTime, 1000); // Update time every second
+        updateDate(); // Update date on page load
+        updateBatteryStatus(); // Check battery status on page load
+
+        // Initial calls
+        updateTime();
+
+        // Listen for battery updates
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                battery.addEventListener('levelchange', updateBatteryStatus);
+                battery.addEventListener('chargingchange', updateBatteryStatus);
+            });
+        }
+    </script>
+</body>
+</html>
